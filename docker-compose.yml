@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres
+    image: postgres:17
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: prservice
