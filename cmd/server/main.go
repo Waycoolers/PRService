@@ -23,7 +23,7 @@ func main() {
 		log.Fatal("migrate: ", err)
 	}
 
-	service := services.NewUseCase(repo)
+	service := services.NewService(repo)
 
 	handler := &httphandler.Handler{
 		S: service,

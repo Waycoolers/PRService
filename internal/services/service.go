@@ -8,6 +8,6 @@ type Service struct {
 	repo ports.Repository
 }
 
-func NewUseCase(repo ports.Repository) *Service {
+func NewService(repo ports.Repository) *Service {
 	return &Service{repo: repo}
 }
