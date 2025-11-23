@@ -15,6 +15,9 @@ test:
 	docker compose -f docker-compose.test.yml up --abort-on-container-exit --build
 	docker compose -f docker-compose.test.yml down --volumes --remove-orphans
 
+load-test:
+	go run tests/load.go
+
 lint:
 	golangci-lint run -v ./...
 
