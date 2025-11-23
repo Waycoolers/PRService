@@ -84,9 +84,8 @@ func (s *Service) ReassignReviewer(ctx context.Context, prID, oldUserID string) 
 		return domain.PullRequest{}, "", domain.ErrNotFound
 	}
 
-	exclude := append(pr.AssignedReviewers, author.UserID)
-
-	candidates, err := s.repo.ListActiveTeamMembers(ctx, author.TeamName, exclude, 1)
+	pr.AssignedReviewers = append(pr.AssignedReviewers, author.UserID)
+	candidates, err := s.repo.ListActiveTeamMembers(ctx, author.TeamName, pr.AssignedReviewers, 1)
 	if err != nil || len(candidates) == 0 {
 		return domain.PullRequest{}, "", domain.ErrNoCandidate
 	}

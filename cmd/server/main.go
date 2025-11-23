@@ -18,10 +18,18 @@ func main() {
 		log.Fatal("DATABASE_URL env variable is required")
 	}
 	repo := postgres.NewPostgresRepo(dbURL)
-	defer repo.Close()
-	if err := repo.Migrate(); err != nil {
-		log.Fatal("migrate: ", err)
-	}
+	defer func(repo *postgres.Repo) {
+		err := repo.Close()
+		if err != nil {
+			log.Printf("error closing postgres repo: %v", err)
+		}
+	}(repo)
+
+	defer func() {
+		if err := repo.Close(); err != nil {
+			log.Printf("failed to close repo: %v", err)
+		}
+	}()
 
 	service := services.NewService(repo)
 
@@ -48,7 +56,9 @@ func main() {
 
 	port := ":8080"
 	log.Printf("Server listening on port %s", port)
-	if err := http.ListenAndServe(port, r); err != nil {
-		log.Fatalf("server failed: %v", err)
+	err := http.ListenAndServe(port, r)
+	if err != nil {
+		log.Printf("server failed: %v", err)
+		return
 	}
 }

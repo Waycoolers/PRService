@@ -25,11 +25,8 @@ func NewPostgresRepo(dbURL string) *Repo {
 
 	return &Repo{db: db}
 }
-func (r *Repo) Close() {
-	err := r.db.Close()
-	if err != nil {
-		log.Fatalf("close connection: %v", err)
-	}
+func (r *Repo) Close() error {
+	return r.db.Close()
 }
 
 func (r *Repo) CreateTeam(ctx context.Context, team domain.Team) error {

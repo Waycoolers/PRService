@@ -23,8 +23,7 @@ func (h *Handler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.S.CreateTeam(r.Context(), team); err != nil {
-		switch {
-		case errors.Is(err, domain.ErrTeamExists):
+		if errors.Is(err, domain.ErrTeamExists) {
 			http.Error(w, "TEAM_EXISTS", http.StatusBadRequest)
 			return
 		}
@@ -48,8 +47,7 @@ func (h *Handler) GetTeam(w http.ResponseWriter, r *http.Request) {
 
 	team, err := h.S.GetTeam(r.Context(), teamName)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrNotFound):
+		if errors.Is(err, domain.ErrNotFound) {
 			http.Error(w, "TEAM_NOT_FOUND", http.StatusNotFound)
 			return
 		}
@@ -75,8 +73,7 @@ func (h *Handler) SetUserActive(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.S.SetActive(r.Context(), req.UserID, req.IsActive)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrNotFound):
+		if errors.Is(err, domain.ErrNotFound) {
 			http.Error(w, "USER_NOT_FOUND", http.StatusNotFound)
 			return
 		}
@@ -138,15 +135,16 @@ func (h *Handler) CreatePR(w http.ResponseWriter, r *http.Request) {
 
 	pr, err := h.S.CreatePR(r.Context(), pr)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrPrExists):
+		if errors.Is(err, domain.ErrPrExists) {
 			http.Error(w, "PR_EXISTS", http.StatusConflict)
-		case errors.Is(err, domain.ErrNotFound):
-			http.Error(w, "AUTHOR_OR_TEAM_NOT_FOUND", http.StatusNotFound)
-		default:
-			http.Error(w, "internal error", http.StatusInternalServerError)
-			log.Printf("error creating PR: %v", err)
+			return
 		}
+		if errors.Is(err, domain.ErrNotFound) {
+			http.Error(w, "AUTHOR_OR_TEAM_NOT_FOUND", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		log.Printf("error creating PR: %v", err)
 		return
 	}
 
@@ -168,8 +166,7 @@ func (h *Handler) MergePR(w http.ResponseWriter, r *http.Request) {
 
 	pr, err := h.S.MergePR(r.Context(), req.PullRequestID)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrNotFound):
+		if errors.Is(err, domain.ErrNotFound) {
 			http.Error(w, "PR_NOT_FOUND", http.StatusNotFound)
 			return
 		}
@@ -195,16 +192,19 @@ func (h *Handler) ReassignReviewer(w http.ResponseWriter, r *http.Request) {
 
 	pr, replacedBy, err := h.S.ReassignReviewer(r.Context(), req.PullRequestID, req.OldUserID)
 	if err != nil {
-		switch {
-		case errors.Is(err, domain.ErrPrMerged):
+		if errors.Is(err, domain.ErrPrMerged) {
 			http.Error(w, "PR_MERGED", http.StatusConflict)
-		case errors.Is(err, domain.ErrNotAssigned):
-			http.Error(w, "NOT_ASSIGNED", http.StatusConflict)
-		case errors.Is(err, domain.ErrNoCandidate):
-			http.Error(w, "NO_CANDIDATE", http.StatusConflict)
-		default:
-			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
 		}
+		if errors.Is(err, domain.ErrNotAssigned) {
+			http.Error(w, "NOT_ASSIGNED", http.StatusConflict)
+			return
+		}
+		if errors.Is(err, domain.ErrNoCandidate) {
+			http.Error(w, "NO_CANDIDATE", http.StatusConflict)
+			return
+		}
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 
