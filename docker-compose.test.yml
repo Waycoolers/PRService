@@ -1,0 +1,25 @@
+services:
+  postgres_test:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: prservice_test
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  app_test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      postgres_test:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgres://postgres:password@postgres_test:5432/prservice_test?sslmode=disable"
+      ENV: "test"
